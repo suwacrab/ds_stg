@@ -23,8 +23,8 @@ typedef struct game_mem
 game_mem game;
 u32 frame_cur = 0;
 u32 frame_time = 0;
-u32 tekuna_width = 12;
-u32 tekuna_height = 12;
+u32 tekuna_width = 8;
+u32 tekuna_height = 8;
 u32 tekuna_size;
 
 // funcs

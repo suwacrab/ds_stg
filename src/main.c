@@ -10,8 +10,6 @@
 #include "images.h"
 #include "arcfont.h"
 
-#define BULLET_LEN (0x0400)
-
 // types
 typedef struct game_mem
 {
