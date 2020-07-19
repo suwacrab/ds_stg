@@ -30,8 +30,6 @@ void init_sys();
 void init_gfx();
 void init_video();
 
-void updt_bgscroll();
-
 int main(int argc, char **argv) 
 {
 	tekuna_size = tekuna_width * tekuna_height;
@@ -39,7 +37,6 @@ int main(int argc, char **argv)
 	game.time = 0;
 	// create objs
 	while(1) {
-		dmaset(3,NULL,NULL,0);
 		scanKeys();
 		u32 keydown = keysDown();
 		//u32 keyheld = keysHeld();
@@ -78,46 +75,12 @@ int main(int argc, char **argv)
 			sprintf(txtbuf,fmt,(u32)sizeof(game_mem),game.time,frame_cnt,frame_cur);
 			arcfont_draw_sub(txtbuf,0,8);
 		}
-		// update bg scroll
-		updt_bgscroll();
 		// vsync
 		game.time++;
 		swiWaitForVBlank();
 	}
 
 	return 0;
-}
-
-void updt_bgscroll()
-{
-	// update colors, first
-	FILE *f = fopen("dat/tekuna/tekuna.pal.bin","rb");
-	// > get colors
-	CLR16 pal[0x10];
-	fread(pal,0x10,sizeof(CLR16),f);
-	fclose(f);
-	// > lerp colors
-	CLR16 bgclr = pal[7];
-	pal[0] = bgclr;
-	for(u32 i=0; i<16; i++)
-	{
-		pal[i] = clr15_bez(RGB15(31,31,31),bgclr,pal[i],CLAMP(game.time<<5,0,0x3FF));
-		BG_PAL_MAIN[0][i] = pal[i];
-	}
-	// now update the scroll
-	s16 (*scroll)[2] = (s16(*)[2])game.bg_scroll[0];
-	s32 width = CLAMP(64 - mulf32(game.time,0x0800),0,64);
-	const s32 signlut[2] = { -1,1 };
-	dmaFillHalfWords(0,scroll,sizeof(u16)*2*SCREEN_HEIGHT);
-	for(u32 y=0; y<192; y++)
-	{
-		scroll[y][0] = (s16)( (width * sinLerp((y + game.time)<<8))>>12);
-		scroll[y][1] = (-4) + (s16)( (2 * cosLerp(mulf32(y + game.time,0x64000)))>>12);
-		scroll[y][0] *= signlut[(game.time+y)&1];
-	}
-	dmacpy(3,scroll,&BG_OFFSET[0],sizeof(u16)*2);
-	u32 mode = 2 | DMA_ENABLE | DMA_START_HBL | DMA_REPEAT | DMA_DST_RESET;
-	dmaset(3,scroll,&BG_OFFSET[0],mode);
 }
 
 void init_sys()
